@@ -4,6 +4,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { ResponseInterceptor } from '../src/utils/response.interceptor';
 
 describe('Features API (e2e)', () => {
   let app: INestApplication;
@@ -15,6 +16,7 @@ describe('Features API (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalInterceptors(new ResponseInterceptor());
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -52,9 +54,11 @@ describe('Features API (e2e)', () => {
         .send({ key: 'dark-mode', isEnabled: false, description: 'test' })
         .expect(201)
         .expect((res) => {
-          expect(res.body.key).toBe('dark-mode');
-          expect(res.body.isEnabled).toBe(false);
-          expect(res.body.id).toBeDefined();
+          expect(res.body.success).toBe(true);
+          expect(res.body.statusCode).toBe(201);
+          expect(res.body.data.key).toBe('dark-mode');
+          expect(res.body.data.isEnabled).toBe(false);
+          expect(res.body.data.id).toBeDefined();
         });
     });
 
@@ -97,7 +101,8 @@ describe('Features API (e2e)', () => {
         .get('/features')
         .expect(200)
         .expect((res) => {
-          expect(res.body).toHaveLength(2);
+          expect(res.body.success).toBe(true);
+          expect(res.body.data).toHaveLength(2);
         });
     });
   });
@@ -112,9 +117,10 @@ describe('Features API (e2e)', () => {
         .get('/features/dark-mode')
         .expect(200)
         .expect((res) => {
-          expect(res.body.key).toBe('dark-mode');
-          expect(res.body.userOverrides).toBeDefined();
-          expect(res.body.groupOverrides).toBeDefined();
+          expect(res.body.success).toBe(true);
+          expect(res.body.data.key).toBe('dark-mode');
+          expect(res.body.data.userOverrides).toBeDefined();
+          expect(res.body.data.groupOverrides).toBeDefined();
         });
     });
 
@@ -136,7 +142,8 @@ describe('Features API (e2e)', () => {
         .send({ isEnabled: true })
         .expect(200)
         .expect((res) => {
-          expect(res.body.isEnabled).toBe(true);
+          expect(res.body.success).toBe(true);
+          expect(res.body.data.isEnabled).toBe(true);
         });
     });
   });
@@ -149,7 +156,7 @@ describe('Features API (e2e)', () => {
 
       await request(app.getHttpServer())
         .delete('/features/dark-mode')
-        .expect(204);
+        .expect(200);
 
       return request(app.getHttpServer())
         .get('/features/dark-mode')
@@ -177,8 +184,9 @@ describe('Features API (e2e)', () => {
         .send({ userId: 'user-1' })
         .expect(200)
         .expect((res) => {
-          expect(res.body.enabled).toBe(true);
-          expect(res.body.reason).toBe('user_override');
+          expect(res.body.success).toBe(true);
+          expect(res.body.data.enabled).toBe(true);
+          expect(res.body.data.reason).toBe('user_override');
         });
     });
 
@@ -189,15 +197,15 @@ describe('Features API (e2e)', () => {
 
       await request(app.getHttpServer())
         .delete('/features/dark-mode/overrides/users/user-1')
-        .expect(204);
+        .expect(200);
 
       return request(app.getHttpServer())
         .post('/features/dark-mode/evaluate')
         .send({ userId: 'user-1' })
         .expect(200)
         .expect((res) => {
-          expect(res.body.enabled).toBe(false);
-          expect(res.body.reason).toBe('default');
+          expect(res.body.data.enabled).toBe(false);
+          expect(res.body.data.reason).toBe('default');
         });
     });
   });
@@ -220,8 +228,8 @@ describe('Features API (e2e)', () => {
         .send({ groups: ['beta'] })
         .expect(200)
         .expect((res) => {
-          expect(res.body.enabled).toBe(true);
-          expect(res.body.reason).toBe('group_override');
+          expect(res.body.data.enabled).toBe(true);
+          expect(res.body.data.reason).toBe('group_override');
         });
     });
   });
@@ -244,8 +252,8 @@ describe('Features API (e2e)', () => {
         .send({ region: 'eu' })
         .expect(200)
         .expect((res) => {
-          expect(res.body.enabled).toBe(true);
-          expect(res.body.reason).toBe('region_override');
+          expect(res.body.data.enabled).toBe(true);
+          expect(res.body.data.reason).toBe('region_override');
         });
     });
 
@@ -256,15 +264,15 @@ describe('Features API (e2e)', () => {
 
       await request(app.getHttpServer())
         .delete('/features/dark-mode/overrides/regions/eu')
-        .expect(204);
+        .expect(200);
 
       return request(app.getHttpServer())
         .post('/features/dark-mode/evaluate')
         .send({ region: 'eu' })
         .expect(200)
         .expect((res) => {
-          expect(res.body.enabled).toBe(false);
-          expect(res.body.reason).toBe('default');
+          expect(res.body.data.enabled).toBe(false);
+          expect(res.body.data.reason).toBe('default');
         });
     });
   });
@@ -292,8 +300,8 @@ describe('Features API (e2e)', () => {
         .send({ userId: 'user-1', groups: ['beta'] })
         .expect(200)
         .expect((res) => {
-          expect(res.body.enabled).toBe(false);
-          expect(res.body.reason).toBe('user_override');
+          expect(res.body.data.enabled).toBe(false);
+          expect(res.body.data.reason).toBe('user_override');
         });
     });
 
@@ -303,8 +311,8 @@ describe('Features API (e2e)', () => {
         .send({ userId: 'unknown-user' })
         .expect(200)
         .expect((res) => {
-          expect(res.body.enabled).toBe(false);
-          expect(res.body.reason).toBe('default');
+          expect(res.body.data.enabled).toBe(false);
+          expect(res.body.data.reason).toBe('default');
         });
     });
 
@@ -328,8 +336,8 @@ describe('Features API (e2e)', () => {
         .send({ groups: ['beta'], region: 'eu' })
         .expect(200)
         .expect((res) => {
-          expect(res.body.enabled).toBe(false);
-          expect(res.body.reason).toBe('group_override');
+          expect(res.body.data.enabled).toBe(false);
+          expect(res.body.data.reason).toBe('group_override');
         });
     });
   });

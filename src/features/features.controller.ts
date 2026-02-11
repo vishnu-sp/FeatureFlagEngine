@@ -25,6 +25,7 @@ export class FeaturesController {
   // --- Feature CRUD ---
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new feature flag' })
   @ApiResponse({ status: 201, description: 'Feature flag created' })
   @ApiResponse({ status: 409, description: 'Feature flag key already exists' })
@@ -57,10 +58,9 @@ export class FeaturesController {
   }
 
   @Delete(':key')
-  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a feature flag' })
   @ApiParam({ name: 'key', example: 'dark-mode' })
-  @ApiResponse({ status: 204, description: 'Feature flag deleted' })
+  @ApiResponse({ status: 200, description: 'Feature flag deleted' })
   @ApiResponse({ status: 404, description: 'Feature flag not found' })
   remove(@Param('key') key: string) {
     return this.featuresService.remove(key);
@@ -81,11 +81,10 @@ export class FeaturesController {
   }
 
   @Delete(':key/overrides/users/:userId')
-  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove a user-level override' })
   @ApiParam({ name: 'key', example: 'dark-mode' })
   @ApiParam({ name: 'userId', example: 'user-123' })
-  @ApiResponse({ status: 204, description: 'Override removed' })
+  @ApiResponse({ status: 200, description: 'Override removed' })
   @ApiResponse({ status: 404, description: 'Override not found' })
   removeUserOverride(
     @Param('key') key: string,
@@ -109,11 +108,10 @@ export class FeaturesController {
   }
 
   @Delete(':key/overrides/groups/:groupName')
-  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove a group-level override' })
   @ApiParam({ name: 'key', example: 'dark-mode' })
   @ApiParam({ name: 'groupName', example: 'beta-testers' })
-  @ApiResponse({ status: 204, description: 'Override removed' })
+  @ApiResponse({ status: 200, description: 'Override removed' })
   @ApiResponse({ status: 404, description: 'Override not found' })
   removeGroupOverride(
     @Param('key') key: string,
@@ -137,11 +135,10 @@ export class FeaturesController {
   }
 
   @Delete(':key/overrides/regions/:region')
-  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove a region-level override' })
   @ApiParam({ name: 'key', example: 'dark-mode' })
   @ApiParam({ name: 'region', example: 'eu' })
-  @ApiResponse({ status: 204, description: 'Override removed' })
+  @ApiResponse({ status: 200, description: 'Override removed' })
   @ApiResponse({ status: 404, description: 'Override not found' })
   removeRegionOverride(
     @Param('key') key: string,

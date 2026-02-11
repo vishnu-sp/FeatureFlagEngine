@@ -31,6 +31,8 @@ The API runs at `http://localhost:3000`.
 
 Once the server is running, open the link above to explore all endpoints, request/response schemas, and try requests directly from the browser. No extra tooling required.
 
+All successful responses use a standard format: `{ success, statusCode, data, timestamp }`.
+
 ## Running Tests
 
 ```bash
