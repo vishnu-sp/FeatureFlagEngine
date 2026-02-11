@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator dbml {
+  provider   = "prisma-dbml-generator"
+  output     = "."
+  outputName = "schema.dbml"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  description String?
+  isEnabled   Boolean  @default(false) @map("is_enabled")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userOverrides   UserOverride[]
+  groupOverrides  GroupOverride[]
+  regionOverrides RegionOverride[]
+
+  @@map("feature_flags")
+}
+
+model UserOverride {
+  id            String   @id @default(uuid())
+  featureFlagId String   @map("feature_flag_id")
+  userId        String   @map("user_id")
+  isEnabled     Boolean  @map("is_enabled")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  featureFlag FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+
+  @@unique([featureFlagId, userId])
+  @@map("user_overrides")
+}
+
+model GroupOverride {
+  id            String   @id @default(uuid())
+  featureFlagId String   @map("feature_flag_id")
+  groupName     String   @map("group_name")
+  isEnabled     Boolean  @map("is_enabled")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  featureFlag FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+
+  @@unique([featureFlagId, groupName])
+  @@map("group_overrides")
+}
+
+model RegionOverride {
+  id            String   @id @default(uuid())
+  featureFlagId String   @map("feature_flag_id")
+  region        String
+  isEnabled     Boolean  @map("is_enabled")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  featureFlag FeatureFlag @relation(fields: [featureFlagId], references: [id], onDelete: Cascade)
+
+  @@unique([featureFlagId, region])
+  @@map("region_overrides")
+}
