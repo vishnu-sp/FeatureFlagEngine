@@ -16,6 +16,8 @@ cp .env.example .env
 # 2. Install dependencies
 npm install
 
+# 3. Run database migration
+npx prisma migrate dev --name init
 
 # 4. Start the server
 npm run start:dev
