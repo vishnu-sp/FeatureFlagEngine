@@ -5,7 +5,6 @@ A lightweight feature flag system built with NestJS, Prisma, and PostgreSQL. Sup
 ## Prerequisites
 
 - Node.js >= 20
-- PostgreSQL database (you provide the connection URL)
 
 ## Setup & Run
 
