@@ -173,6 +173,19 @@ The evaluation path uses an in-memory cache (30s TTL) to avoid hitting the datab
 
 
 
+## What I'd Do Next
+
+**With another hour:**
+
+- Add percentage-based rollouts. Right now a flag is either on or off — I'd add a `rolloutPercentage` field so you can say "enable for 20% of users". Hash the user ID to decide deterministically (consistent hashing so the same user always gets the same result). The evaluator is already a pure function, so this slots in without touching much else.
+- Pagination on `GET /features`. The list endpoint currently dumps everything. Would add cursor-based pagination since offset-based gets weird once you start deleting flags mid-page.
+
+**With another day:**
+
+- Audit log. Every flag change (created, toggled, override added/removed) should be tracked with who did it and when. This is the kind of thing that's easy to add early and painful to retrofit. Separate `audit_events` table, append-only.
+- Swap the in-memory cache for Redis. The current cache works fine for a single instance, but the moment you have two servers running they'll have inconsistent views. Redis with pub/sub for invalidation would fix that.
+
+
 ## Known Limitations
 
 - In-memory cache means stale reads are possible within the TTL window (30s)
